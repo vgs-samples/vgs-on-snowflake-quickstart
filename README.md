@@ -1,0 +1,1 @@
+# vgs-on-snowflake-quickstart
