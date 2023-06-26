@@ -8,6 +8,7 @@ This repo contains Snowflake SQL commands for setting up a demonstration databas
 ## Requirements
 - VGS [account](https://dashboard.verygoodsecurity.com/)
 - Snowflake [account](https://signup.snowflake.com/) with "Business Critical" configuration running as Account Admin or a role with similar privileges.
+ - VGS Vault Tokenizer installed on your account. Request it [here](https://app.snowflake.com/marketplace/listing/GZTYZCNE9KE)
 
 # Quickstart
 
