@@ -170,3 +170,54 @@ To connect with your VGS vault you will need to create a set of credentials ( cl
 7. Start the VGS Vault Tokenizer in Snowflake the opening screen and enter the corresponding values (note: ClientID and Secret are the same as Username and Password from vault credentials respectively) and hit Connect.
 <p align="center"><img src="https://lh5.googleusercontent.com/7OibGQ6KwiVup0Ss0E66NcTYwwDVbQF7ztuB7APm8SYZpBsnCwk3ERIjg2TEmxbmYvW8yzMEJ9Ul9dUgvnYykRMRLQJ1y8MxA7tS1RDDBgIfw6CY8Dyd3YRuu-yVO-nFhqNAa2OwBEjl1nIZ3nWL5Wg" alt="Snowflake with VGS Vault Tokenizer app installed"></a></p>
 
+## Configure your Data Classification
+Navigate to the Data Classification page in the app and enter your classifications just like below by entering the Name, Description and selecting the levels (you should select the levels you created before)
+<p align="center"><img src="https://lh4.googleusercontent.com/G6Wh7nT6dLe_7u1g3dAVXhR7MuBIhh_Cu-iJeXLbOGYNYipUdYwdAD4WBsJ3RIBOSSJeT2NaOMnN_priMYeUDhZZI_tyqVmfDDcgoIidEDzpAD8-q3BRByFcPH8KYuQcbxJn8VDivEMDk7zekEVJqbM" alt="Snowflake with VGS Vault Tokenizer app installed"></a></p>
+
+Run these commands after you create your data classifications
+```sql
+-- this is run for every data classification level that you enter into the data classification table
+ALTER TAG VGS_VAULT_TOKENIZER_DEMO.ADMIN.LEVEL_1_TAG SET MASKING POLICY VGS_VAULT_TOKENIZER.ADMIN.VGS_REVEAL_LEVEL_1_MASKING_POLICY;
+ALTER TAG VGS_VAULT_TOKENIZER_DEMO.ADMIN.LEVEL_2_TAG SET MASKING POLICY VGS_VAULT_TOKENIZER.ADMIN.VGS_REVEAL_LEVEL_2_MASKING_POLICY;
+```
+## Configure In-Place Tokenization
+Navigate to the tokenization page and tokenize your data.
+
+Select your database, schema and table. If you get an error after hitting the configure button, then double check  that the application was granted USAGE to the database, schema and table.
+
+Configure your tokenization for the Customers table exactly like you see in the image below.
+
+<p align="center"><img src="https://lh6.googleusercontent.com/QF8b7wwq2RAL0G4--UHqVc7JCt3Qi-lL8IEFGuC19v9KbqmCrTa2Wk53EZpTcbewOzETpLtsJ0fBi8r1Yh4jw-X9IfSLAihcuoaIocn4FeEYe63P7yuDK6JrGWMnf0Rlb8oPtEm4he1vxWNvzw-jvSY" alt="Snowflake with VGS Vault Tokenizer app installed"></a></p>
+
+Do the same for the Accountsummary table table exactly like you see in the image below.
+<p align="center"><img src="https://lh5.googleusercontent.com/nQHfTB9XtZ8DL1_-sgqSqgYviIylUiIGeMGewCsPepiIBVSfCByvMzPgoZid9NskJf1vZNhGmC2CEEdz9OFPWDoi9M3QkQiDSrrk4_nzl_XEo1h18a8k2S8L7vvgFe4o6H7xDCDeERy3fyeub4nU9FQ" alt="Snowflake with VGS Vault Tokenizer app installed"></a></p>
+
+Run these commands after you set up your Tokenization
+```sql
+-- Set up required tags on table so that the "reveal" functionality is allowed for privileged users.
+ALTER TABLE DEMO_DB.public.Customers MODIFY COLUMN SSN SET TAG VGS_VAULT_TOKENIZER.admin.LEVEL_1_TAG = 'LEVEL_1';
+ALTER TABLE DEMO_DB.public.Customers MODIFY COLUMN drivers_license_number SET TAG VGS_VAULT_TOKENIZER.admin.LEVEL_1_TAG = 'LEVEL_1';
+ALTER TABLE DEMO_DB.public.Customers MODIFY COLUMN email_address SET TAG VGS_VAULT_TOKENIZER.admin.LEVEL_2_TAG = 'LEVEL_2';
+ALTER TABLE DEMO_DB.public.AccountSummary MODIFY COLUMN account_ssn SET TAG VGS_VAULT_TOKENIZER.admin.LEVEL_1_TAG = 'LEVEL_1';
+```
+
+## Run Some Queries
+
+Open a worksheet as a role other than DATA_OWNER or SENIOR_ANALYST and run the following commands.
+```sql
+USE DATABASE DEMO_DB;
+SELECT * FROM CUSTOMERS;
+```
+The data in DRIVERS_LICENSE_NUMBER and EMAIL_ADDRESS are tokenized using a uuid format, the SSN is tokenized by replacing all but the last four digits of the original.
+
+<p align="center"><img src="https://lh4.googleusercontent.com/9fLObMpY32-6zbb-h0UpYcFL7t4kGfX5IdVKwcypqB-TD4vSlt5oVvRUNJPAOdtFsZtLakDbO969FYvkMQaqFvGDEtFk2_V-1G4vORzGY2WcaEM5FGqIBo9j_RYlbTxDLcpH4L4OR7zKN8MUPFN2M4s" alt="Snowflake with VGS Vault Tokenizer app installed"></a></p>
+
+Now change your role to SENIOR_ANALYST and run the commands again, notice anything different? The senior analyst has access to Level 2 data, so the email address is revealed.
+
+
+<p align="center"><img src="https://lh3.googleusercontent.com/L0iMrMvheR-Vp_tVJ3mH62m9MmhoM47GzlZQJCajGEZU1fvHFfC_l0XpE5rmfPzFq1kDkjohZ4rOtxjjs-tgsWceU1csatadLpVFBYWI4MH5EiS_o6bcwgVJKgXXfdyFu4l3rw-nd5IVeqmOvr59Eio" alt="Snowflake with VGS Vault Tokenizer app installed"></a></p>
+
+Now change your role to DATA_OWNER and run the commands again and SSN and DRIVER_LICENSE_NUMBER reflects the real values.
+
+<p align="center"><img src="https://lh6.googleusercontent.com/wAsxLmSPBXBzqPg_8yEJFVIXPmTfXE3h5A8rYtLgy3WvY_ACyVtfupsTK3jeIv4c68lRbUYEQJ8AcnY4azW1RGbP0DR3yJS1OLeAr9EgpsUOz_mEqppNJe6VCBHAtbrG4G3Bs29drjf1SiGiNzKrQM8" alt="Snowflake with VGS Vault Tokenizer app installed"></a></p>
+
