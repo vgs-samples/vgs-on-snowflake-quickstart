@@ -115,3 +115,58 @@ GRANT APPLICATION ROLE VGS_VAULT_TOKENIZER.VGS_APP_PUBLIC TO ROLE ANALYST;
 GRANT APPLICATION ROLE VGS_VAULT_TOKENIZER.VGS_APP_PUBLIC TO ROLE DATA_OWNER;
 GRANT APPLICATION ROLE VGS_VAULT_TOKENIZER.VGS_APP_PUBLIC TO ROLE SENIOR_ANALYST;
 ```
+## Granting Access to the Application
+The application is designed to be configured solely by a user with a higher system role or privileges. The application uses roles based access to reveal the untokenized values for the fields that are tokenized to authorized users, the application will need to be granted access to every database, schema, and table that contains data to be tokenized, and the application needs to be granted access to the integration that you have produced as well as to other areas of snowflake. The installing and configuring  user needs to have the AccountAdmin role.
+
+The following commands set the appropriate level of account access to the application (including to the integration you set up in the previous step)
+
+```sql
+-- Enable integration on application
+GRANT USAGE ON INTEGRATION VGS_APP_INTEGRATION to application VGS_VAULT_TOKENIZER;
+GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE TO APPLICATION VGS_VAULT_TOKENIZER; 
+
+-- Allow the VGS app to execute tasks
+-- grants the application the ability to execute its tasks on your account - note - change the name of the WH to whichever one you want the app to run on
+GRANT EXECUTE TASK ON ACCOUNT TO APPLICATION VGS_VAULT_TOKENIZER;
+
+GRANT OPERATE ON WAREHOUSE ANALYST_WH TO APPLICATION VGS_VAULT_TOKENIZER;
+GRANT USAGE ON WAREHOUSE ANALYST_WH TO APPLICATION VGS_VAULT_TOKENIZER;
+GRANT MODIFY ON WAREHOUSE ANALYST_WH TO APPLICATION VGS_VAULT_TOKENIZER;
+-- Grant VGS application privileges to table
+GRANT ALL PRIVILEGES ON TABLE DEMO_DB.PUBLIC.AccountSummary TO APPLICATION VGS_VAULT_TOKENIZER;
+GRANT ALL PRIVILEGES ON TABLE DEMO_DB.PUBLIC.Customers TO APPLICATION VGS_VAULT_TOKENIZER;
+ALTER TABLE DEMO_DB.PUBLIC.AccountSummary SET CHANGE_TRACKING = TRUE;
+ALTER TABLE DEMO_DB.PUBLIC.Customers SET CHANGE_TRACKING = TRUE;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN schema DEMO_DB.PUBLIC
+TO APPLICATION VGS_VAULT_TOKENIZER;
+```
+## Configure the VGS Vault Tokenizer Connection
+To connect with your VGS vault you will need to create a set of credentials ( client id and secret) for the vault you intend to connect to. To do so follow the following steps.
+
+1. Log into your VGS account and navigate to the vault using the organization and vault selector in the top menu. We recommend creating a separate vault for your data warehouse tokenization.
+
+<p align="center"><img src="https://lh5.googleusercontent.com/3VMLDi14IXfFcNLZObosBiCzL3nDxwg6gn4KRD1YnudfEwGkAciOfQFIxjf89Tiyi2IecLN2no4RdEX5wKiMNvAHUbmcWSCwk3Ii17NBk_NCXqXCrLSINzfmJFZNqdtyOsK39dju0A9o-orrwZcLEH8" alt="Snowflake with VGS Vault Tokenizer app installed"></a></p>
+
+2. Using the side menu navigate to “Vault Settings” under the Administration group.
+
+<p align="center"><img src="https://lh3.googleusercontent.com/i2z9Vly-TkwCV2pD_wWBV0s64auAMdom-fDrRV_h2akx9r9AUv6XZkTExGWZysk9KSVT73myCRi9q6HwPXqTNNT6B9gqfDdjdo0yS7A80S98NuudMS4PVCDdRGyrWAHYYZHXd6jLdIXzWRlLdIhKLM4" alt="Snowflake with VGS Vault Tokenizer app installed"></a></p>
+
+3. Next choose “Access Credentials” and then “Generate Credentials”
+
+<p align="center"><img src="https://lh4.googleusercontent.com/eZTp91n9t5ghMsNdmpSkwZiP2jLEvhmUt_IO6m04lHcxPZrHksRCpkCFtQIquZopniJl9UJWj4Kczeaso1btKtl0dxQbK8Ajb4LVKf_SfbMMuyyfSI7xwbbV17BaYhfzhc_I9_BTrlDMMP1InB6Z4J8" alt="Snowflake with VGS Vault Tokenizer app installed"></a></p>
+
+4. Copy down your Username and Password (client id and secret). You will use these credentials in your VGS Vault Tokenizer app in Snowflake.
+
+<p align="center"><img src="https://lh3.googleusercontent.com/h-BFFVXqHbiWz9fi-IIlJ2u5nSIZblnOBuXLdNIK13Be6t6-OhtTF9yXsFd2CNBCJvwKGkMALbzx3iCkGsx2F2cEQk2QMzvfjyO14TSvpWH0fBfcOd78zDGWcApA1njaGx6KBcITuU90NIBigFEIoAk" alt="Snowflake with VGS Vault Tokenizer app installed"></a></p>
+
+5. You will also need your organization and vault ids. You can get your org id by selecting your org from the top and then clicking “Manage”
+
+<p align="center"><img src="https://lh3.googleusercontent.com/_GrTl0GUJIXIXQP9iEfvnjlYf9g52qsDx1OFh7azEB_OImACSu5jkw9RR7gN16OO_vBvbas9Y5PvO1KbUNTg9pjoQVf8uOoCzOkgtBE7LQyOGsJcjgOCOtc9KLXM8Qvnnz-ifytc1RQtVOl_uM7VSTA" alt="Snowflake with VGS Vault Tokenizer app installed"></a></p>
+
+6. Your vault id is located in the upper left corner of the side menu.
+<p align="center"><img src="https://lh4.googleusercontent.com/NKqeGVzrrL9QMan3tX8O4rs-qyRhHwN1qq1L-T612FwHje07KtRT0lDKU6uP7tGs4aWyvDd_-YXps8dNJTjOVDETc8a70U_YfRE0qbTY8NZ-ATdxLhWDe0nV6T3En9-2GHxHkXSq4EgyGudGOUEU3os" alt="Snowflake with VGS Vault Tokenizer app installed"></a></p>
+
+7. Start the VGS Vault Tokenizer in Snowflake the opening screen and enter the corresponding values (note: ClientID and Secret are the same as Username and Password from vault credentials respectively) and hit Connect.
+<p align="center"><img src="https://lh5.googleusercontent.com/7OibGQ6KwiVup0Ss0E66NcTYwwDVbQF7ztuB7APm8SYZpBsnCwk3ERIjg2TEmxbmYvW8yzMEJ9Ul9dUgvnYykRMRLQJ1y8MxA7tS1RDDBgIfw6CY8Dyd3YRuu-yVO-nFhqNAa2OwBEjl1nIZ3nWL5Wg" alt="Snowflake with VGS Vault Tokenizer app installed"></a></p>
+
